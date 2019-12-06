@@ -15,7 +15,7 @@ import { Actors } from "./index";
 
 export class Actor {
     public static defaultActionConfig = {
-        maxTimeoutSecs: 5,
+        maxTimeoutSecs: 10,
         tryIntervalSecs: 1,
     };
 
@@ -232,6 +232,14 @@ export class Actor {
                     )
             ).to.eventually.be.true;
         }
+    }
+
+    public async stop() {
+        return this.cndInstance.stop();
+    }
+
+    public async start() {
+        return this.cndInstance.start();
     }
 
     public async restart() {

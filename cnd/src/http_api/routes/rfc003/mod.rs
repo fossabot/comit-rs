@@ -4,7 +4,8 @@ pub mod handlers;
 mod swap_state;
 
 use crate::{
-    db::{DetermineTypes, Retrieve, Save, Swap},
+    db::{DetermineTypes, LoadAcceptedSwap, Retrieve, Save, Swap},
+    ethereum::{Erc20Token, EtherQuantity},
     http_api::{
         action::ActionExecutionParameters,
         route_factory::swap_path,
@@ -16,6 +17,7 @@ use crate::{
     network::{Network, SendRequest},
     seed::SwapSeed,
     swap_protocols::{
+        ledger::{Bitcoin, Ethereum},
         rfc003::{actions::ActionKind, state_store::StateStore},
         LedgerEventsCreator, SwapId,
     },
@@ -35,6 +37,10 @@ pub fn post_swap<
         + StateStore
         + Executor
         + Save<Swap>
+        + LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, EtherQuantity>
+        + LoadAcceptedSwap<Ethereum, Bitcoin, EtherQuantity, bitcoin::Amount>
+        + LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, Erc20Token>
+        + LoadAcceptedSwap<Ethereum, Bitcoin, Erc20Token, bitcoin::Amount>
         + SendRequest
         + SwapSeed
         + Saver
@@ -73,6 +79,10 @@ pub fn get_swap<D: DetermineTypes + Retrieve + StateStore>(
 pub fn action<
     D: DetermineTypes
         + Retrieve
+        + LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, EtherQuantity>
+        + LoadAcceptedSwap<Ethereum, Bitcoin, EtherQuantity, bitcoin::Amount>
+        + LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, Erc20Token>
+        + LoadAcceptedSwap<Ethereum, Bitcoin, Erc20Token, bitcoin::Amount>
         + StateStore
         + Executor
         + Clone

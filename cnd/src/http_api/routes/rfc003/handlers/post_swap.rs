@@ -1,13 +1,13 @@
 use crate::{
-    db::{Save, Saver, Swap},
-    ethereum,
+    db::{LoadAcceptedSwap, Save, Saver, Swap},
+    ethereum::{self, Erc20Token, EtherQuantity},
     http_api::{HttpAsset, HttpLedger},
     network::{DialInformation, SendRequest},
     seed::SwapSeed,
     swap_protocols::{
         self,
         asset::Asset,
-        ledger,
+        ledger::{self, Bitcoin, Ethereum},
         rfc003::{
             self, alice::State, state_store::StateStore, Accept, Decline, Ledger, Request,
             SecretHash, SecretSource,
@@ -32,6 +32,10 @@ pub async fn handle_post_swap<
         + Executor
         + StateStore
         + Save<Swap>
+        + LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, EtherQuantity>
+        + LoadAcceptedSwap<Ethereum, Bitcoin, EtherQuantity, bitcoin::Amount>
+        + LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, Erc20Token>
+        + LoadAcceptedSwap<Ethereum, Bitcoin, Erc20Token, bitcoin::Amount>
         + SendRequest
         + SwapSeed
         + Saver
@@ -214,6 +218,7 @@ where
         + SwapSeed
         + Save<Request<AL, BL, AA, BA>>
         + Save<Accept<AL, BL>>
+        + LoadAcceptedSwap<AL, BL, AA, BA>
         + Save<Swap>
         + Save<Decline>
         + LedgerEventsCreator
@@ -245,13 +250,8 @@ where
             match response {
                 Ok(accept) => {
                     Save::save(&dependencies, accept).await?;
-
-                    swap_protocols::init_accepted_swap(
-                        &dependencies,
-                        swap_request,
-                        accept,
-                        Role::Alice,
-                    )?;
+                    let accepted = dependencies.load_accepted_swap(&id).await?;
+                    swap_protocols::init_accepted_swap(&dependencies, accepted, Role::Alice)?;
                 }
                 Err(decline) => {
                     log::info!("Swap declined: {:?}", decline);
