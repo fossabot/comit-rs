@@ -1,5 +1,6 @@
 pub mod ethereum_helper;
 
+use chrono::NaiveDateTime;
 use cnd::{
     btsieve::{ethereum::TransactionPattern, MatchingTransactions},
     ethereum::{Block, Transaction, TransactionAndReceipt, TransactionReceipt},
@@ -58,7 +59,7 @@ fn find_transaction_in_old_block() {
                 transaction_data_length: None,
                 events: None,
             },
-            Some(block1_with_transaction.timestamp.low_u32()),
+            NaiveDateTime::from_timestamp(block1_with_transaction.timestamp.low_u32() as i64, 0),
         )
         .first_or_else(|| panic!())
         .wait()

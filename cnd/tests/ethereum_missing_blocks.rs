@@ -1,5 +1,6 @@
 pub mod ethereum_helper;
 
+use chrono::offset::Utc;
 use cnd::{
     btsieve::{ethereum::TransactionPattern, MatchingTransactions},
     ethereum::{Transaction, TransactionAndReceipt, TransactionReceipt},
@@ -52,7 +53,7 @@ fn find_transaction_in_missing_block() {
                 transaction_data_length: None,
                 events: None,
             },
-            None,
+            Utc::now().naive_local(),
         )
         .first_or_else(|| panic!())
         .wait()
@@ -114,7 +115,7 @@ fn find_transaction_in_missing_block_with_big_gap() {
                 transaction_data_length: None,
                 events: None,
             },
-            None,
+            Utc::now().naive_local(),
         )
         .first_or_else(|| panic!())
         .wait()

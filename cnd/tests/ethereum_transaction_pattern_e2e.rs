@@ -1,3 +1,4 @@
+use chrono::offset::Utc;
 use cnd::{
     btsieve::{
         ethereum::{TransactionPattern, Web3Connector},
@@ -57,7 +58,7 @@ fn ethereum_transaction_pattern_e2e_test() {
                 transaction_data_length: None,
                 events: None,
             },
-            None,
+            Utc::now().naive_local(),
         )
         .take(1)
         .into_future()

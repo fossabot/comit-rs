@@ -1,5 +1,6 @@
 use bitcoin::{Amount, Network};
 use bitcoincore_rpc::RpcApi;
+use chrono::offset::Utc;
 use cnd::btsieve::{
     bitcoin::{BitcoindConnector, TransactionPattern},
     MatchingTransactions,
@@ -47,7 +48,7 @@ fn bitcoin_transaction_pattern_e2e_test() {
                 from_outpoint: None,
                 unlock_script: None,
             },
-            None,
+            Utc::now().naive_local(),
         )
         .take(1)
         .into_future()

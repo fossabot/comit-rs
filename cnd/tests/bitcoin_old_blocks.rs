@@ -2,6 +2,7 @@ pub mod bitcoin_helper;
 
 use bitcoin::Address;
 use bitcoin_helper::BitcoinConnectorMock;
+use chrono::NaiveDateTime;
 use cnd::{
     btsieve::{bitcoin::TransactionPattern, MatchingTransactions},
     first_or_else::StreamExt,
@@ -42,7 +43,7 @@ fn find_transaction_in_old_block() {
                 from_outpoint: None,
                 unlock_script: None,
             },
-            Some(block1_with_transaction.header.time),
+            NaiveDateTime::from_timestamp(block1_with_transaction.header.time as i64, 0),
         )
         .first_or_else(|| panic!())
         .wait()

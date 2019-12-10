@@ -2,6 +2,7 @@ pub mod bitcoin_helper;
 
 use bitcoin::Address;
 use bitcoin_helper::BitcoinConnectorMock;
+use chrono::offset::Utc;
 use cnd::{
     btsieve::{bitcoin::TransactionPattern, MatchingTransactions},
     first_or_else::StreamExt,
@@ -38,7 +39,7 @@ fn find_transaction_in_missing_block() {
                 from_outpoint: None,
                 unlock_script: None,
             },
-            None,
+            Utc::now().naive_local(),
         )
         .first_or_else(|| panic!())
         .wait()
@@ -84,7 +85,7 @@ fn find_transaction_in_missing_block_with_big_gap() {
                 from_outpoint: None,
                 unlock_script: None,
             },
-            None,
+            Utc::now().naive_local(),
         )
         .first_or_else(|| panic!())
         .wait()
@@ -128,7 +129,7 @@ fn find_transaction_if_blockchain_reorganisation() {
                 from_outpoint: None,
                 unlock_script: None,
             },
-            None,
+            Utc::now().naive_local(),
         )
         .first_or_else(|| panic!())
         .wait()
@@ -173,7 +174,9 @@ fn find_transaction_if_blockchain_reorganisation_with_long_chain() {
             ),
             from_outpoint: None,
             unlock_script: None,
-        }, None)
+        },
+                               Utc::now().naive_local(),
+        )
         .first_or_else(|| panic!())
         .wait()
         .unwrap();
