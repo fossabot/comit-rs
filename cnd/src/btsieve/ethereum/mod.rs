@@ -7,7 +7,7 @@ pub use self::{
 };
 use crate::{
     btsieve::{BlockByHash, LatestBlock, MatchingTransactions, ReceiptByHash},
-    ethereum::{Block, Transaction, TransactionAndReceipt, TransactionReceipt, H256, U256},
+    ethereum::{Block, Transaction, TransactionAndReceipt, TransactionReceipt, H256},
 };
 use chrono::NaiveDateTime;
 use futures_core::{compat::Future01CompatExt, future::join, FutureExt, TryFutureExt};
@@ -36,8 +36,6 @@ where
         let (block_queue, next_block) = async_std::sync::channel(1);
         let (find_parent_queue, next_find_parent) = async_std::sync::channel(5);
         let (look_in_the_past_queue, next_look_in_the_past) = async_std::sync::channel(5);
-
-        let timestamp = U256::from(timestamp.timestamp());
 
         spawn(self.clone(), {
             let mut connector = self.clone();
@@ -161,7 +159,7 @@ where
                                 Ok(Some(block)) => {
                                     if crate::block_is_younger_than_timestamp(
                                         block.timestamp.as_u32() as i64,
-                                        timestamp.as_u32() as i64,
+                                        timestamp.timestamp() as i64,
                                     ) {
                                         join(
                                             block_queue.send(block.clone()),
