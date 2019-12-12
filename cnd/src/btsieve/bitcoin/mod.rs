@@ -35,10 +35,10 @@ where
     fn matching_transactions(
         &self,
         pattern: TransactionPattern,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> Box<dyn Stream<Item = Self::Transaction, Error = ()> + Send + 'static> {
         let matching_transaction =
-            Box::pin(matching_transaction(self.clone(), pattern, timestamp)).compat();
+            Box::pin(matching_transaction(self.clone(), pattern, after)).compat();
         Box::new(stream::futures_unordered(vec![matching_transaction]))
     }
 }
@@ -46,7 +46,7 @@ where
 async fn matching_transaction<C, E>(
     mut blockchain_connector: C,
     pattern: TransactionPattern,
-    timestamp: NaiveDateTime,
+    after: NaiveDateTime,
 ) -> Result<bitcoin::Transaction, ()>
 where
     C: LatestBlock<Block = bitcoin::Block, Error = E>
@@ -96,10 +96,7 @@ where
         missing_block_futures = new_missing_block_futures;
 
         if let Some(block) = oldest_block.as_ref() {
-            if crate::block_is_younger_than_timestamp(
-                block.header.time as i64,
-                timestamp.timestamp(),
-            ) {
+            if crate::block_is_after(block.header.time as i64, after.timestamp()) {
                 match blockchain_connector
                     .block_by_hash(block.header.prev_blockhash)
                     .compat()

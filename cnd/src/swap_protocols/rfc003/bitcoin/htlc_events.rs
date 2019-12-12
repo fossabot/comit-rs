@@ -28,14 +28,14 @@ impl HtlcEvents<Bitcoin, Amount> for BitcoindConnector {
     fn htlc_deployed(
         &self,
         htlc_params: HtlcParams<Bitcoin, Amount>,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> Box<DeployedFuture<Bitcoin>> {
         let future = self
             .matching_transactions(TransactionPattern {
                 to_address: Some(htlc_params.compute_address()),
                 from_outpoint: None,
                 unlock_script: None,
-            }, timestamp)
+            }, after)
             .map_err(|_| rfc003::Error::Btsieve)
             .first_or_else(|| {
                 log::warn!("stream of matching transactions ended before yielding a value");
@@ -69,7 +69,7 @@ impl HtlcEvents<Bitcoin, Amount> for BitcoindConnector {
         &self,
         _htlc_params: HtlcParams<Bitcoin, Amount>,
         htlc_deployment: &Deployed<Bitcoin>,
-        _timestamp: NaiveDateTime,
+        _after: NaiveDateTime,
     ) -> Box<FundedFuture<Bitcoin, Amount>> {
         let tx = &htlc_deployment.transaction;
         let asset = Amount::from_sat(tx.output[htlc_deployment.location.vout as usize].value);
@@ -84,7 +84,7 @@ impl HtlcEvents<Bitcoin, Amount> for BitcoindConnector {
         htlc_params: HtlcParams<Bitcoin, Amount>,
         htlc_deployment: &Deployed<Bitcoin>,
         _htlc_funding: &Funded<Bitcoin, Amount>,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> Box<RedeemedOrRefundedFuture<Bitcoin>> {
         let refunded_future = {
             self.matching_transactions(
@@ -93,7 +93,7 @@ impl HtlcEvents<Bitcoin, Amount> for BitcoindConnector {
                     from_outpoint: Some(htlc_deployment.location),
                     unlock_script: Some(vec![vec![]]),
                 },
-                timestamp,
+                after,
             )
             .map_err(|_| rfc003::Error::Btsieve)
             .first_or_else(|| {
@@ -110,7 +110,7 @@ impl HtlcEvents<Bitcoin, Amount> for BitcoindConnector {
                     from_outpoint: Some(htlc_deployment.location),
                     unlock_script: Some(vec![vec![1u8]]),
                 },
-                timestamp,
+                after,
             )
             .map_err(|_| rfc003::Error::Btsieve)
             .first_or_else(|| {

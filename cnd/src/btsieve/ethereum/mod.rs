@@ -31,7 +31,7 @@ where
     fn matching_transactions(
         &self,
         pattern: TransactionPattern,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> Box<dyn Stream<Item = Self::Transaction, Error = ()> + Send> {
         let (block_queue, next_block) = async_std::sync::channel(1);
         let (find_parent_queue, next_find_parent) = async_std::sync::channel(5);
@@ -157,9 +157,9 @@ where
                         Some(parent_blockhash) => {
                             match connector.block_by_hash(parent_blockhash).compat().await {
                                 Ok(Some(block)) => {
-                                    if crate::block_is_younger_than_timestamp(
+                                    if crate::block_is_after(
                                         block.timestamp.as_u32() as i64,
-                                        timestamp.timestamp() as i64,
+                                        after.timestamp() as i64,
                                     ) {
                                         join(
                                             block_queue.send(block.clone()),

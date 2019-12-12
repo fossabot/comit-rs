@@ -74,14 +74,14 @@ pub struct OngoingSwap<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> {
     pub alpha_expiry: Timestamp,
     pub beta_expiry: Timestamp,
     pub secret_hash: SecretHash,
-    pub timestamp: NaiveDateTime,
+    pub accepted_at: NaiveDateTime,
 }
 
 impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> OngoingSwap<AL, BL, AA, BA> {
     pub fn new(
         request: Request<AL, BL, AA, BA>,
         accept: Accept<AL, BL>,
-        timestamp: NaiveDateTime,
+        accepted_at: NaiveDateTime,
     ) -> Self {
         OngoingSwap {
             alpha_ledger: request.alpha_ledger,
@@ -96,7 +96,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> OngoingSwap<AL, BL, AA, BA> {
             alpha_expiry: request.alpha_expiry,
             beta_expiry: request.beta_expiry,
             secret_hash: request.secret_hash,
-            timestamp,
+            accepted_at,
         }
     }
 
@@ -283,7 +283,7 @@ pub fn create_swap<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset>(
     beta_ledger_events: Box<dyn LedgerEvents<BL, BA>>,
     request: Request<AL, BL, AA, BA>,
     accept: Accept<AL, BL>,
-    timestamp: NaiveDateTime,
+    accepted_at: NaiveDateTime,
 ) -> (
     impl Future<Item = (), Error = ()> + Send + 'static,
     impl Stream<Item = SwapStates<AL, BL, AA, BA>, Error = ()> + Send + 'static,
@@ -300,7 +300,7 @@ pub fn create_swap<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset>(
 
     let swap_execution = Swap::start_in(
         Start {
-            swap: OngoingSwap::new(request, accept, timestamp),
+            swap: OngoingSwap::new(request, accept, accepted_at),
         },
         context,
     )
@@ -319,7 +319,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
     ) -> Result<Async<AfterStart<AL, BL, AA, BA>>, rfc003::Error> {
         let alpha_deployed = try_ready!(context
             .alpha_ledger_events
-            .htlc_deployed(state.swap.alpha_htlc_params(), state.swap.timestamp)
+            .htlc_deployed(state.swap.alpha_htlc_params(), state.swap.accepted_at)
             .poll());
         let state = state.take();
         transition_save!(context.state_repo, AlphaDeployed {
@@ -337,7 +337,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
             .htlc_funded(
                 state.swap.alpha_htlc_params(),
                 &state.alpha_deployed,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll());
         let state = state.take();
@@ -366,7 +366,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.alpha_htlc_params(),
                 &state.alpha_deployed,
                 &state.alpha_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll()?
         {
@@ -395,7 +395,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
 
         let beta_deployed = try_ready!(context
             .beta_ledger_events
-            .htlc_deployed(state.swap.beta_htlc_params(), state.swap.timestamp)
+            .htlc_deployed(state.swap.beta_htlc_params(), state.swap.accepted_at)
             .poll());
         let state = state.take();
         transition_save!(context.state_repo, AlphaFundedBetaDeployed {
@@ -416,7 +416,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.alpha_htlc_params(),
                 &state.alpha_deployed,
                 &state.alpha_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll());
         let state = state.take();
@@ -457,7 +457,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.alpha_htlc_params(),
                 &state.alpha_deployed,
                 &state.alpha_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll()?
         {
@@ -489,7 +489,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
             .htlc_funded(
                 state.swap.beta_htlc_params(),
                 &state.beta_deployed,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll());
         let state = state.take();
@@ -516,7 +516,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.beta_htlc_params(),
                 &state.beta_deployed,
                 &state.beta_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll()?
         {
@@ -551,7 +551,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.alpha_htlc_params(),
                 &state.alpha_deployed,
                 &state.alpha_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll())
         {
@@ -590,7 +590,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.alpha_htlc_params(),
                 &state.alpha_deployed,
                 &state.alpha_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll())
         {
@@ -637,7 +637,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.beta_htlc_params(),
                 &state.beta_deployed,
                 &state.beta_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll())
         {
@@ -684,7 +684,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.beta_htlc_params(),
                 &state.beta_deployed,
                 &state.beta_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll())
         {
@@ -730,7 +730,7 @@ impl<AL: Ledger, BL: Ledger, AA: Asset, BA: Asset> PollSwap<AL, BL, AA, BA>
                 state.swap.alpha_htlc_params(),
                 &state.alpha_deployed,
                 &state.alpha_funded,
-                state.swap.timestamp,
+                state.swap.accepted_at,
             )
             .poll())
         {

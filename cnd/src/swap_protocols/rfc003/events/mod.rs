@@ -56,14 +56,14 @@ pub trait LedgerEvents<L: Ledger, A: Asset>: Send {
     fn htlc_deployed(
         &mut self,
         htlc_params: HtlcParams<L, A>,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> &mut DeployedFuture<L>;
 
     fn htlc_funded(
         &mut self,
         htlc_params: HtlcParams<L, A>,
         htlc_deployment: &Deployed<L>,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> &mut FundedFuture<L, A>;
 
     fn htlc_redeemed_or_refunded(
@@ -71,7 +71,7 @@ pub trait LedgerEvents<L: Ledger, A: Asset>: Send {
         htlc_params: HtlcParams<L, A>,
         htlc_deployment: &Deployed<L>,
         htlc_funding: &Funded<L, A>,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> &mut RedeemedOrRefundedFuture<L>;
 }
 
@@ -79,19 +79,19 @@ pub trait HtlcEvents<L: Ledger, A: Asset>: Send + Sync + 'static {
     fn htlc_deployed(
         &self,
         htlc_params: HtlcParams<L, A>,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> Box<DeployedFuture<L>>;
     fn htlc_funded(
         &self,
         htlc_params: HtlcParams<L, A>,
         htlc_deployment: &Deployed<L>,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> Box<FundedFuture<L, A>>;
     fn htlc_redeemed_or_refunded(
         &self,
         htlc_params: HtlcParams<L, A>,
         htlc_deployment: &Deployed<L>,
         htlc_funding: &Funded<L, A>,
-        timestamp: NaiveDateTime,
+        after: NaiveDateTime,
     ) -> Box<RedeemedOrRefundedFuture<L>>;
 }

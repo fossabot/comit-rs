@@ -72,12 +72,13 @@ pub trait CreateLedgerEvents<L: Ledger, A: Asset> {
     fn create_ledger_events(&self) -> Box<dyn LedgerEvents<L, A>>;
 }
 
-// This is rather arbitrary.  TCP default timeout (15 minutes) seems nice.
-const MARGIN: i64 = 15 * 60;
-
-/// Check if a block is younger than a timestamp.  Both block_time and timestamp
+/// Check if a block was mined after a timestamp.  Both `block_time` and `after`
 /// are seconds since epoch.
-pub fn block_is_younger_than_timestamp(block_time: i64, timestamp: i64) -> bool {
-    // Since times are seconds since epoch, 'younger' means value is bigger.
-    block_time > (timestamp - MARGIN)
+pub fn block_is_after(block_time: i64, after: i64) -> bool {
+    // Ensuring we do not miss a transaction is vital and it doesn't hurt to go back
+    // up the chain further than we need to.  So, add an arbitrary  margin.  TCP
+    // default timeout (15 minutes) seems nice.
+    const MARGIN: i64 = 15 * 60;
+
+    block_time > (after - MARGIN)
 }
