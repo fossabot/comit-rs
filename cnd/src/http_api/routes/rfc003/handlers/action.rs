@@ -20,13 +20,15 @@ use crate::{
             self,
             actions::{Action, ActionKind},
             bob::State,
+            events::HtlcEvents,
             messages::{Decision, IntoAcceptMessage},
             state_store::StateStore,
         },
-        LedgerEventsCreator, SwapId,
+        SwapId,
     },
 };
 use anyhow::Context;
+use bitcoin::Amount;
 use libp2p_comit::frame::Response;
 use std::fmt::Debug;
 use tokio::executor::Executor;
@@ -39,7 +41,9 @@ pub async fn handle_action<
         + SwapSeed
         + Saver
         + DetermineTypes
-        + LedgerEventsCreator
+        + HtlcEvents<Bitcoin, Amount>
+        + HtlcEvents<Ethereum, EtherQuantity>
+        + HtlcEvents<Ethereum, Erc20Token>
         + Executor
         + LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, EtherQuantity>
         + LoadAcceptedSwap<Ethereum, Bitcoin, EtherQuantity, bitcoin::Amount>

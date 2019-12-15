@@ -2,22 +2,22 @@ use crate::{
     db::{LoadAcceptedSwap, Save, Saver, Swap},
     ethereum::{self, Erc20Token, EtherQuantity},
     http_api::{HttpAsset, HttpLedger},
-    network::{DialInformation, SendRequest},
+    network::{DialInformation, Network},
     seed::SwapSeed,
     swap_protocols::{
         self,
         asset::Asset,
         ledger::{self, Bitcoin, Ethereum},
         rfc003::{
-            self, alice::State, state_store::StateStore, Accept, Decline, Ledger, Request,
-            SecretHash, SecretSource,
+            self, alice::State, events::HtlcEvents, state_store::StateStore, Accept, Decline,
+            Ledger, Request, SecretHash, SecretSource,
         },
-        HashFunction, LedgerEventsCreator, Role, SwapId,
+        HashFunction, Role, SwapId,
     },
     timestamp::Timestamp,
-    CreateLedgerEvents,
 };
 use anyhow::Context;
+use bitcoin::Amount;
 use futures::Future;
 use futures_core::{
     compat::Future01CompatExt,
@@ -36,11 +36,13 @@ pub async fn handle_post_swap<
         + LoadAcceptedSwap<Ethereum, Bitcoin, EtherQuantity, bitcoin::Amount>
         + LoadAcceptedSwap<Bitcoin, Ethereum, bitcoin::Amount, Erc20Token>
         + LoadAcceptedSwap<Ethereum, Bitcoin, Erc20Token, bitcoin::Amount>
-        + SendRequest
         + SwapSeed
         + Saver
+        + Network
         + Clone
-        + LedgerEventsCreator,
+        + HtlcEvents<Bitcoin, Amount>
+        + HtlcEvents<Ethereum, EtherQuantity>
+        + HtlcEvents<Ethereum, Erc20Token>,
 >(
     dependencies: D,
     body: serde_json::Value,
@@ -214,16 +216,15 @@ async fn initiate_request<D, AL, BL, AA, BA>(
 where
     D: StateStore
         + Executor
-        + SendRequest
         + SwapSeed
         + Save<Request<AL, BL, AA, BA>>
         + Save<Accept<AL, BL>>
         + LoadAcceptedSwap<AL, BL, AA, BA>
         + Save<Swap>
         + Save<Decline>
-        + LedgerEventsCreator
-        + CreateLedgerEvents<AL, AA>
-        + CreateLedgerEvents<BL, BA>
+        + Network
+        + HtlcEvents<AL, AA>
+        + HtlcEvents<BL, BA>
         + Clone,
     AL: Ledger,
     BL: Ledger,

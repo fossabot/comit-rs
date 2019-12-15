@@ -37,7 +37,7 @@ pub mod timestamp;
 
 use crate::swap_protocols::{
     asset::Asset,
-    rfc003::{events::LedgerEvents, Ledger},
+    rfc003::{events::HtlcEvents, Ledger},
 };
 use anyhow::Context;
 use directories::ProjectDirs;
@@ -69,7 +69,7 @@ pub fn data_dir() -> Option<PathBuf> {
 }
 
 pub trait CreateLedgerEvents<L: Ledger, A: Asset> {
-    fn create_ledger_events(&self) -> Box<dyn LedgerEvents<L, A>>;
+    fn create_ledger_events(&self) -> Box<dyn HtlcEvents<L, A>>;
 }
 
 /// Check if a block was mined after a timestamp.  Both `block_time` and `after`

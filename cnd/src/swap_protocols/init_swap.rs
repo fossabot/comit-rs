@@ -5,13 +5,13 @@ use crate::{
         asset::Asset,
         rfc003::{
             alice, bob,
+            events::HtlcEvents,
             state_machine::{self, SwapStates},
             state_store::StateStore,
             Ledger,
         },
         Role, SwapId,
     },
-    CreateLedgerEvents,
 };
 use futures::{Future, Stream};
 use tokio::executor::Executor;
@@ -23,12 +23,7 @@ pub fn init_accepted_swap<D, AL: Ledger, BL: Ledger, AA: Asset, BA: Asset>(
     role: Role,
 ) -> anyhow::Result<()>
 where
-    D: StateStore
-        + Clone
-        + SwapSeed
-        + Executor
-        + CreateLedgerEvents<AL, AA>
-        + CreateLedgerEvents<BL, BA>,
+    D: StateStore + Clone + SwapSeed + Executor + HtlcEvents<AL, AA> + HtlcEvents<BL, BA>,
 {
     let (request, accept, at) = accepted;
     let id = request.swap_id;
@@ -45,9 +40,8 @@ where
         }
     };
 
-    let alpha = dependencies.create_ledger_events();
-    let beta = dependencies.create_ledger_events();
-    let (swap_execution, receiver) = state_machine::create_swap(alpha, beta, request, accept, at);
+    let (swap_execution, receiver) =
+        state_machine::create_swap(dependencies.clone(), request, accept, at);
 
     spawn(dependencies, id, swap_execution, receiver, role)
 }
