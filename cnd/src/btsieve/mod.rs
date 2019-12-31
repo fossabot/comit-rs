@@ -48,3 +48,14 @@ pub trait ReceiptByHash: Send + Sync + 'static {
         transaction_hash: Self::TransactionHash,
     ) -> Box<dyn Future<Item = Self::Receipt, Error = Self::Error> + Send + 'static>;
 }
+
+/// Check if a block was mined after a timestamp.  Both `block_time` and `after`
+/// are seconds since epoch.
+pub fn block_is_after(block_time: i64, after: i64) -> bool {
+    // Ensuring we do not miss a transaction is vital and it doesn't hurt to go back
+    // up the chain further than we need to.  So, add an arbitrary  margin.  TCP
+    // default timeout (15 minutes) seems nice.
+    const MARGIN: i64 = 15 * 60;
+
+    block_time > (after - MARGIN)
+}

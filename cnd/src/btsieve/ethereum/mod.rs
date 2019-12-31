@@ -157,7 +157,7 @@ where
                         Some(parent_blockhash) => {
                             match connector.block_by_hash(parent_blockhash).compat().await {
                                 Ok(Some(block)) => {
-                                    if crate::block_is_after(
+                                    if super::block_is_after(
                                         block.timestamp.as_u32() as i64,
                                         after.timestamp() as i64,
                                     ) {

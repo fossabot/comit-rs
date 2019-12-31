@@ -96,7 +96,7 @@ where
         missing_block_futures = new_missing_block_futures;
 
         if let Some(block) = oldest_block.as_ref() {
-            if crate::block_is_after(block.header.time as i64, after.timestamp()) {
+            if super::block_is_after(block.header.time as i64, after.timestamp()) {
                 match blockchain_connector
                     .block_by_hash(block.header.prev_blockhash)
                     .compat()
