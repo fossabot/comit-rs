@@ -240,7 +240,7 @@ export class Actor {
     }
 
     public async start() {
-        return this.cndInstance.start();
+        await this.cndInstance.start();
     }
 
     public async restart() {
