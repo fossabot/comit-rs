@@ -239,10 +239,6 @@ export class Actor {
         }
     }
 
-    public async stop() {
-        return this.cndInstance.stop();
-    }
-
     public async start() {
         return this.cndInstance.start();
     }

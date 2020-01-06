@@ -18,7 +18,7 @@ setTimeout(function() {
             // Action happens while alice is down.
             await bob.fund();
 
-            // Blocks are geneated every second here, we to ensure
+            // Blocks are generated every second here, we to ensure
             // we look into the past for the transaction.
             await sleep(2000);
             await alice.start();
@@ -43,7 +43,7 @@ setTimeout(function() {
             // Action happens while bob is down.
             await alice.fund();
 
-            // Blocks are geneated every second here, we to ensure
+            // Blocks are generated every second here, we to ensure
             // we look into the past for the transaction.
             await sleep(2000);
             await bob.start();
@@ -72,7 +72,7 @@ setTimeout(function() {
             // Action happens while bob is down.
             await alice.redeem();
 
-            // Blocks are geneated every second here, we to ensure
+            // Blocks are generated every second here, we to ensure
             // we look into the past for the transaction.
             await sleep(2000);
             await bob.start();
@@ -100,7 +100,7 @@ setTimeout(function() {
             // Action happens while alice is down.
             await bob.redeem();
 
-            // Blocks are geneated every second here, we to ensure
+            // Blocks are generated every second here, we to ensure
             // we look into the past for the transaction.
             await sleep(2000);
             await alice.start();
