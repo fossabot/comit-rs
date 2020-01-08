@@ -8,7 +8,11 @@ use cnd::{
     db::Sqlite,
     http_api::route_factory,
     load_swaps,
-    network::{self, transport, Network},
+    network::{
+        self,
+        transport::{self, ComitTransport},
+        Network,
+    },
     seed::Seed,
     swap_protocols::{rfc003::state_store::InMemoryStateStore, Facade},
 };
@@ -16,7 +20,12 @@ use futures::{stream, Future, Stream};
 use futures_core::{FutureExt, TryFutureExt};
 use libp2p::{
     identity::{self, ed25519},
+    swarm::{protocols_handler::DummyProtocolsHandler, ExpandedSwarm, IntoProtocolsHandlerSelect},
     PeerId, Swarm,
+};
+use libp2p_core::{
+    either::{EitherError, EitherOutput},
+    muxing::{StreamMuxerBox, SubstreamRef},
 };
 use rand::rngs::OsRng;
 use std::{
@@ -25,6 +34,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 use structopt::StructOpt;
+use tokio::runtime::Runtime;
 
 mod cli;
 mod logging;
@@ -49,7 +59,7 @@ fn main() -> anyhow::Result<()> {
 
     let seed = Seed::from_dir_or_generate(&settings.data.dir, OsRng)?;
 
-    let mut runtime = tokio::runtime::Runtime::new()?;
+    let mut runtime = Runtime::new()?;
 
     let bitcoin_connector = {
         let config::Bitcoin { node_url, network } = settings.clone().bitcoin;
@@ -67,23 +77,17 @@ fn main() -> anyhow::Result<()> {
     let local_peer_id = PeerId::from(local_key_pair.clone().public());
     log::info!("Starting with peer_id: {}", local_peer_id);
 
-    let transport = transport::build_comit_transport(local_key_pair);
-    let behaviour = network::ComitNode::new(
-        bitcoin_connector.clone(),
-        ethereum_connector.clone(),
-        Arc::clone(&state_store),
+    let swarm = make_swarm(
+        &settings,
         seed,
-        database.clone(),
-        runtime.executor(),
+        &mut runtime,
+        &bitcoin_connector,
+        &ethereum_connector,
+        &state_store,
+        &database,
+        local_key_pair,
+        &local_peer_id,
     )?;
-
-    let mut swarm = Swarm::new(transport, behaviour, local_peer_id.clone());
-
-    for addr in settings.network.listen.clone() {
-        Swarm::listen_on(&mut swarm, addr).expect("Could not listen on specified address");
-    }
-
-    let swarm = Arc::new(Mutex::new(swarm));
 
     let deps = Facade {
         bitcoin_connector,
@@ -114,6 +118,50 @@ fn main() -> anyhow::Result<()> {
     // Block the current thread.
     ::std::thread::park();
     Ok(())
+}
+
+fn make_swarm(
+    settings: &Settings,
+    seed: Seed,
+    mut runtime: &mut Runtime,
+    bitcoin_connector: &BitcoindConnector,
+    ethereum_connector: &Web3Connector,
+    state_store: &Arc<InMemoryStateStore>,
+    database: &Sqlite,
+    local_key_pair: identity::Keypair,
+    local_peer_id: &PeerId,
+) -> anyhow::Result<
+    Arc<
+        Mutex<
+            ExpandedSwarm<
+                ComitTransport,
+                network::ComitNode<SubstreamRef<Arc<StreamMuxerBox>>>,
+                EitherOutput<libp2p_comit::handler::ProtocolInEvent, void::Void>,
+                EitherOutput<libp2p_comit::handler::ProtocolOutEvent, void::Void>,
+                IntoProtocolsHandlerSelect<
+                    libp2p_comit::handler::ComitHandler<SubstreamRef<Arc<StreamMuxerBox>>>,
+                    DummyProtocolsHandler<SubstreamRef<Arc<StreamMuxerBox>>>,
+                >,
+                EitherError<libp2p_comit::frame::CodecError, void::Void>,
+            >,
+        >,
+    >,
+> {
+    let transport = transport::build_comit_transport(local_key_pair);
+    let behaviour = network::ComitNode::new(
+        bitcoin_connector.clone(),
+        ethereum_connector.clone(),
+        Arc::clone(&state_store),
+        seed,
+        database.clone(),
+        runtime.executor(),
+    )?;
+    let mut swarm = Swarm::new(transport, behaviour, local_peer_id.clone());
+    for addr in settings.network.listen.clone() {
+        Swarm::listen_on(&mut swarm, addr).expect("Could not listen on specified address");
+    }
+
+    Ok(Arc::new(Mutex::new(swarm)))
 }
 
 #[allow(clippy::print_stdout)] // We cannot use `log` before we have the config file
