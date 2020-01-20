@@ -106,10 +106,9 @@ impl Arbitrary for Quickcheck<sha256d::Hash> {
 
 impl Arbitrary for Quickcheck<crate::asset::Ether> {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        let u256 = *Quickcheck::<crate::ethereum::U256>::arbitrary(g);
-        let ether_quantity = crate::asset::Ether::from_wei(u256);
-
-        Quickcheck(ether_quantity)
+        //        let u256 = *Quickcheck::<crate::ethereum::U256>::arbitrary(g);
+        //        let ether_quantity = crate::asset::Ether::from_wei(u256);
+        unimplemented!()
     }
 }
 
@@ -215,23 +214,25 @@ impl Arbitrary
     for Quickcheck<Request<ledger::Bitcoin, ledger::Ethereum, asset::Bitcoin, crate::asset::Ether>>
 {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        Quickcheck(Request {
-            swap_id: *Quickcheck::<SwapId>::arbitrary(g),
-            alpha_ledger: ledger::Bitcoin {
-                network: *Quickcheck::<bitcoin::Network>::arbitrary(g),
-            },
-            beta_ledger: ledger::Ethereum {
-                chain_id: *Quickcheck::<ChainId>::arbitrary(g),
-            },
-            alpha_asset: *Quickcheck::<asset::Bitcoin>::arbitrary(g),
-            beta_asset: *Quickcheck::<crate::asset::Ether>::arbitrary(g),
-            hash_function: *Quickcheck::<HashFunction>::arbitrary(g),
-            alpha_ledger_refund_identity: *Quickcheck::<crate::bitcoin::PublicKey>::arbitrary(g),
-            beta_ledger_redeem_identity: *Quickcheck::<crate::ethereum::Address>::arbitrary(g),
-            alpha_expiry: *Quickcheck::<Timestamp>::arbitrary(g),
-            beta_expiry: *Quickcheck::<Timestamp>::arbitrary(g),
-            secret_hash: *Quickcheck::<SecretHash>::arbitrary(g),
-        })
+        //        Quickcheck(Request {
+        //            swap_id: *Quickcheck::<SwapId>::arbitrary(g),
+        //            alpha_ledger: ledger::Bitcoin {
+        //                network: *Quickcheck::<bitcoin::Network>::arbitrary(g),
+        //            },
+        //            beta_ledger: ledger::Ethereum {
+        //                chain_id: *Quickcheck::<ChainId>::arbitrary(g),
+        //            },
+        //            alpha_asset: *Quickcheck::<asset::Bitcoin>::arbitrary(g),
+        //            beta_asset: *Quickcheck::<crate::asset::Ether>::arbitrary(g),
+        //            hash_function: *Quickcheck::<HashFunction>::arbitrary(g),
+        //            alpha_ledger_refund_identity:
+        // *Quickcheck::<crate::bitcoin::PublicKey>::arbitrary(g),
+        // beta_ledger_redeem_identity:
+        // *Quickcheck::<crate::ethereum::Address>::arbitrary(g),
+        // alpha_expiry: *Quickcheck::<Timestamp>::arbitrary(g),
+        // beta_expiry: *Quickcheck::<Timestamp>::arbitrary(g),
+        // secret_hash: *Quickcheck::<SecretHash>::arbitrary(g),        })
+        unimplemented!()
     }
 }
 
@@ -263,23 +264,25 @@ impl Arbitrary
     for Quickcheck<Request<ledger::Ethereum, ledger::Bitcoin, crate::asset::Ether, asset::Bitcoin>>
 {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        Quickcheck(Request {
-            swap_id: *Quickcheck::<SwapId>::arbitrary(g),
-            alpha_ledger: ledger::Ethereum {
-                chain_id: *Quickcheck::<ChainId>::arbitrary(g),
-            },
-            beta_ledger: ledger::Bitcoin {
-                network: *Quickcheck::<bitcoin::Network>::arbitrary(g),
-            },
-            alpha_asset: *Quickcheck::<crate::asset::Ether>::arbitrary(g),
-            beta_asset: *Quickcheck::<asset::Bitcoin>::arbitrary(g),
-            hash_function: *Quickcheck::<HashFunction>::arbitrary(g),
-            alpha_ledger_refund_identity: *Quickcheck::<crate::ethereum::Address>::arbitrary(g),
-            beta_ledger_redeem_identity: *Quickcheck::<crate::bitcoin::PublicKey>::arbitrary(g),
-            alpha_expiry: *Quickcheck::<Timestamp>::arbitrary(g),
-            beta_expiry: *Quickcheck::<Timestamp>::arbitrary(g),
-            secret_hash: *Quickcheck::<SecretHash>::arbitrary(g),
-        })
+        //        Quickcheck(Request {
+        //            swap_id: *Quickcheck::<SwapId>::arbitrary(g),
+        //            alpha_ledger: ledger::Ethereum {
+        //                chain_id: *Quickcheck::<ChainId>::arbitrary(g),
+        //            },
+        //            beta_ledger: ledger::Bitcoin {
+        //                network: *Quickcheck::<bitcoin::Network>::arbitrary(g),
+        //            },
+        //            alpha_asset: *Quickcheck::<crate::asset::Ether>::arbitrary(g),
+        //            beta_asset: *Quickcheck::<asset::Bitcoin>::arbitrary(g),
+        //            hash_function: *Quickcheck::<HashFunction>::arbitrary(g),
+        //            alpha_ledger_refund_identity:
+        // *Quickcheck::<crate::ethereum::Address>::arbitrary(g),
+        // beta_ledger_redeem_identity:
+        // *Quickcheck::<crate::bitcoin::PublicKey>::arbitrary(g),
+        // alpha_expiry: *Quickcheck::<Timestamp>::arbitrary(g),
+        // beta_expiry: *Quickcheck::<Timestamp>::arbitrary(g),
+        // secret_hash: *Quickcheck::<SecretHash>::arbitrary(g),        })
+        unimplemented!()
     }
 }
 

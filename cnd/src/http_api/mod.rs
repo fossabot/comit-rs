@@ -249,7 +249,7 @@ pub enum HttpLedger {
 /// `beta_asset`.
 ///
 /// Note: This enum makes use of serde's "try_from" and "try_into" feature: https://serde.rs/container-attrs.html#from
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(try_from = "HttpAssetParams")]
 #[serde(into = "HttpAssetParams")]
 pub enum HttpAsset {
@@ -303,7 +303,7 @@ pub struct BitcoinAssetParams {
     quantity: Http<asset::Bitcoin>,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct EtherAssetParams {
     quantity: asset::Ether,
 }

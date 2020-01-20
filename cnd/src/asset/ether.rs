@@ -1,59 +1,98 @@
-use crate::ethereum::{
-    u256_ext::{FromBigUInt, FromDecimalStr, ToBigDecimal, ToDecimalStr, ToFloat},
-    U256,
-};
+use crate::ethereum::U256;
 use bigdecimal::{BigDecimal, ParseBigDecimalError};
-use num::FromPrimitive;
+use num::{bigint::BigUint, Zero};
 use serde::{
     de::{self, Deserialize, Deserializer},
     ser::{Serialize, Serializer},
 };
 use std::{f64, fmt, str::FromStr};
 
-#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Hash)]
-pub struct Ether(U256);
+#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
+pub struct Ether(BigUint);
 
 impl Ether {
+    pub fn max_value() -> Self {
+        Self(BigUint::from(std::u64::MAX) * 4u64)
+    }
+
     fn from_eth_bigdec(decimal: &BigDecimal) -> Ether {
-        let (wei_bigint, _) = decimal.with_scale(18).as_bigint_and_exponent();
-        let wei = U256::from_biguint(wei_bigint.to_biguint().unwrap());
-        Ether(wei)
+        //        let (wei_bigint, _) = decimal.with_scale(18).as_bigint_and_exponent();
+        //        let wei = U256::from_biguint(wei_bigint.to_biguint().unwrap());
+        //        Ether(wei)
+        unimplemented!()
     }
 
     pub fn from_eth(eth: f64) -> Self {
-        let dec = BigDecimal::from_f64(eth)
-            .unwrap_or_else(|| panic!("{} is an invalid eth value !", eth));
-        Self::from_eth_bigdec(&dec)
+        //        let dec = BigDecimal::from_f64(eth)
+        //            .unwrap_or_else(|| panic!("{} is an invalid eth value !", eth));
+        //        Self::from_eth_bigdec(&dec)
+        unimplemented!()
     }
 
     pub fn from_wei(wei: U256) -> Self {
-        Ether(wei)
+        //        Ether(wei)
+        unimplemented!()
     }
 
     pub fn ethereum(&self) -> f64 {
-        self.0.to_float(18)
+        //        self.0.to_float(18)
+        unimplemented!()
     }
 
     pub fn wei(&self) -> U256 {
-        self.0
+        //        self.0
+        unimplemented!()
     }
+
+    pub fn checked_add(self, rhs: Self) -> Option<Self> {
+        if self > Self::max_value() || rhs > Self::max_value() {
+            None
+        } else {
+            let res = self.0 + rhs.0;
+            let res = Ether(res);
+            if res > Self::max_value() {
+                None
+            } else {
+                Some(res)
+            }
+        }
+    }
+
     pub fn zero() -> Self {
-        Self::from_wei(U256::zero())
+        Self(BigUint::zero())
     }
 }
 
 impl fmt::Display for Ether {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        let nice_decimals = self.0.to_decimal_str(18);
-        write!(f, "{} ETH", nice_decimals)
+        //        let nice_decimals = self.0.to_decimal_str(18);
+        //        write!(f, "{} ETH", nice_decimals)
+        unimplemented!()
     }
 }
+
+macro_rules! impl_from_primitive {
+    ($primitive:ty) => {
+        impl From<$primitive> for Ether {
+            fn from(p: $primitive) -> Self {
+                Ether(BigUint::from(p))
+            }
+        }
+    };
+}
+
+impl_from_primitive!(u8);
+impl_from_primitive!(u16);
+impl_from_primitive!(u32);
+impl_from_primitive!(u64);
+impl_from_primitive!(u128);
 
 impl FromStr for Ether {
     type Err = ParseBigDecimalError;
     fn from_str(string: &str) -> Result<Ether, Self::Err> {
-        let dec = BigDecimal::from_str(string)?;
-        Ok(Self::from_eth_bigdec(&dec))
+        //        let dec = BigDecimal::from_str(string)?;
+        //        Ok(Self::from_eth_bigdec(&dec))
+        unimplemented!()
     }
 }
 
@@ -75,8 +114,9 @@ impl<'de> Deserialize<'de> for Ether {
             where
                 E: de::Error,
             {
-                let wei = U256::from_decimal_str(v).map_err(E::custom)?;
-                Ok(Ether(wei))
+                //                let wei = U256::from_decimal_str(v).map_err(E::custom)?;
+                //                Ok(Ether(wei))
+                unimplemented!()
             }
         }
 
@@ -89,13 +129,25 @@ impl Serialize for Ether {
     where
         S: Serializer,
     {
-        let (bigint, _exponent) = self.0.to_bigdec(18).as_bigint_and_exponent();
-        serializer.serialize_str(bigint.to_string().as_str())
+        //        let (bigint, _exponent) =
+        // self.0.to_bigdec(18).as_bigint_and_exponent();        serializer.
+        // serialize_str(bigint.to_string().as_str())
+        unimplemented!()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn one_plus_one_equals_two() {
+        let one = Ether::from(1u8);
+        let two = one.clone().checked_add(one);
+
+        assert_eq!(two, Some(Ether::from(2u8)))
+    }
+
     use crate::{asset, ethereum::U256};
     use lazy_static::lazy_static;
     use std::{f64, str::FromStr};
